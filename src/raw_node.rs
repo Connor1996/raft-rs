@@ -36,6 +36,7 @@ use protobuf::{self, RepeatedField};
 use super::errors::{Error, Result};
 use super::raft::{Config, Raft, SoftState, INVALID_ID};
 use super::read_only::ReadState;
+use super::util::time_now_sec;
 use super::Status;
 use super::Storage;
 
@@ -141,6 +142,15 @@ impl Ready {
                 Some(idx) => raft.raft_log.next_entries_since(idx),
             }).unwrap_or_else(Vec::new),
         );
+        if rd.committed_entries.is_some() {
+            let now = time_now_sec();
+            for ent in rd.committed_entries.as_ref().unwrap() {
+                let t = now - ent.get_time();
+                if t > 0.1 {
+                    warn!("raft log {:?} commit cost {}s", ent, t);
+                }
+            }
+        }
         let ss = raft.soft_state();
         if &ss != prev_ss {
             rd.ss = Some(ss);
@@ -265,6 +275,7 @@ impl<T: Storage> RawNode<T> {
         let mut e = Entry::new();
         e.set_data(data);
         e.set_context(context);
+        e.set_time(time_now_sec());
         m.set_entries(RepeatedField::from_vec(vec![e]));
         self.raft.step(m)
     }
@@ -279,6 +290,7 @@ impl<T: Storage> RawNode<T> {
         e.set_entry_type(EntryType::EntryConfChange);
         e.set_data(data);
         e.set_context(context);
+        e.set_time(time_now_sec());
         m.set_entries(RepeatedField::from_vec(vec![e]));
         self.raft.step(m)
     }

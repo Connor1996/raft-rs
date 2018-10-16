@@ -33,6 +33,7 @@ use errors::{Error, Result, StorageError};
 use log_unstable::Unstable;
 use storage::Storage;
 use util;
+use util::time_now_sec;
 
 pub use util::NO_LIMIT;
 
@@ -217,6 +218,10 @@ impl<T: Storage> RaftLog<T> {
             )
         }
         self.committed = to_commit;
+        if let Some(ent) = self.unstable.entries.first() {
+            let t = time_now_sec() - ent.get_time();
+            warn!("commit to cost {}s", t);
+        }
     }
 
     pub fn applied_to(&mut self, idx: u64) {

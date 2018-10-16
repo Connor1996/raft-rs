@@ -12,6 +12,7 @@ message Entry {
     uint64 index = 3;
     bytes data = 4;
     bytes context = 6;
+    double time = 7;
 
     // Deprecated! It is kept for backward compatibility.
     // TODO: remove it in the next major release.
