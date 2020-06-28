@@ -220,11 +220,11 @@ impl<T: Storage> RawNode<T> {
         };
         rn.prev_hs = rn.raft.hard_state();
         rn.prev_ss = rn.raft.soft_state();
-        info!(
-            rn.raft.logger,
-            "RawNode created with id {id}.",
-            id = rn.raft.id
-        );
+        // info!(
+        //     rn.raft.logger,
+        //     "RawNode created with id {id}.",
+        //     id = rn.raft.id
+        // );
         Ok(rn)
     }
 

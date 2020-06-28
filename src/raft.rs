@@ -306,7 +306,7 @@ impl<T: Storage> Raft<T> {
             "applied" => r.raft_log.applied,
             "last index" => r.raft_log.last_index(),
             "last term" => r.raft_log.last_term(),
-            "peers" => ?r.prs().voters().collect::<Vec<_>>(),
+            // "peers" => ?r.prs().voters().collect::<Vec<_>>(),
         );
         Ok(r)
     }
@@ -1053,14 +1053,14 @@ impl<T: Storage> Raft<T> {
         };
         let self_id = self.id;
         let acceptance = true;
-        info!(
-            self.logger,
-            "{id} received message from {from}",
-            id = self.id,
-            from = self_id;
-            "msg" => ?vote_msg,
-            "term" => self.term
-        );
+        // info!(
+        //     self.logger,
+        //     "{id} received message from {from}",
+        //     id = self.id,
+        //     from = self_id;
+        //     "msg" => ?vote_msg,
+        //     "term" => self.term
+        // );
         self.register_vote(self_id, acceptance);
         if let Some(true) = self.check_votes() {
             // We won the election after voting for ourselves (which must mean that
@@ -1074,15 +1074,17 @@ impl<T: Storage> Raft<T> {
             .iter()
             .filter(|&id| *id != self_id)
             .for_each(|&id| {
-                info!(
-                    self.logger,
-                    "[logterm: {log_term}, index: {log_index}] sent request to {id}",
-                    log_term = self.raft_log.last_term(),
-                    log_index = self.raft_log.last_index(),
-                    id = id;
-                    "term" => self.term,
-                    "msg" => ?vote_msg,
-                );
+                let term = self.raft_log.last_term();
+                let index = self.raft_log.last_index();
+                // info!(
+                //     self.logger,
+                //     "[logterm: {log_term}, index: {log_index}] sent request to {id}",
+                //     log_term = term,
+                //     log_index = index,
+                //     id = id;
+                //     "term" => self.term,
+                //     "msg" => ?vote_msg,
+                // );
                 let mut m = new_message(id, vote_msg, None);
                 m.term = term;
                 m.index = self.raft_log.last_index();
